@@ -1,0 +1,44 @@
+name: Snakemake Dry Run
+
+on:
+  push:
+    branches: [ main, dev ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  dry-run:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Miniconda
+        uses: conda-incubator/setup-miniconda@v2
+        with:
+          miniconda-version: "latest"
+          python-version: "3.10"
+          activate-environment: snakemake
+          channels: conda-forge,bioconda
+
+      - name: Install Snakemake
+        shell: bash -l {0}
+        run: |
+          conda install -c conda-forge -c bioconda snakemake=7.32 --yes
+
+      - name: Create dummy data for dry-run
+        run: |
+          mkdir -p data/raw data/genome results/tables results/figures results/qc
+          touch data/genome/hg38.fa data/genome/gencode.v44.annotation.gtf
+          for s in TCGA_BR_001 TCGA_BR_002 TCGA_NM_001 TCGA_NM_002; do
+            touch data/raw/${s}_R1.fastq.gz data/raw/${s}_R2.fastq.gz
+          done
+
+      - name: Run Snakemake dry-run
+        shell: bash -l {0}
+        run: |
+          snakemake --dry-run --cores 1 --use-conda
+
+      - name: Generate DAG
+        shell: bash -l {0}
+        run: |
+          snakemake --dag --cores 1 | dot -Tsvg > results/figures/dag.svg || true

@@ -1,0 +1,5 @@
+sample_id	condition	fastq_r1	fastq_r2	batch
+TCGA_BR_001	tumor	data/raw/TCGA_BR_001_R1.fastq.gz	data/raw/TCGA_BR_001_R2.fastq.gz	batch1
+TCGA_BR_002	tumor	data/raw/TCGA_BR_002_R1.fastq.gz	data/raw/TCGA_BR_002_R2.fastq.gz	batch1
+TCGA_NM_001	normal	data/raw/TCGA_NM_001_R1.fastq.gz	data/raw/TCGA_NM_001_R2.fastq.gz	batch1
+TCGA_NM_002	normal	data/raw/TCGA_NM_002_R1.fastq.gz	data/raw/TCGA_NM_002_R2.fastq.gz	batch2

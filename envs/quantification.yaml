@@ -1,0 +1,10 @@
+name: rnaseq-quantification
+channels:
+  - conda-forge
+  - bioconda
+  - defaults
+dependencies:
+  - python=3.10
+  - subread=2.0.3       # provides featureCounts
+  - pandas=2.0
+  - numpy=1.24

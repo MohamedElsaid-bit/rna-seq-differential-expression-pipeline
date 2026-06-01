@@ -1,0 +1,35 @@
+# ── Large data files — never commit these ─────────────────────────────────
+data/
+*.fastq.gz
+*.fastq
+*.fq.gz
+*.bam
+*.bai
+*.fa
+*.fa.gz
+*.fasta
+*.gtf
+*.gtf.gz
+
+# ── Generated results (re-created by pipeline) ────────────────────────────
+results/
+
+# ── Snakemake internals ───────────────────────────────────────────────────
+.snakemake/
+__pycache__/
+*.pyc
+*.pyo
+
+# ── R session artifacts ───────────────────────────────────────────────────
+.Rhistory
+.RData
+.Rproj.user/
+*.Rproj
+
+# ── Jupyter ───────────────────────────────────────────────────────────────
+.ipynb_checkpoints/
+
+# ── macOS / editor ────────────────────────────────────────────────────────
+.DS_Store
+.vscode/
+*.swp

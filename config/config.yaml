@@ -1,0 +1,51 @@
+# ─── RNA-seq Pipeline Configuration ───────────────────────────────────────────
+# Edit these paths and parameters before running the pipeline.
+
+# ── Sample manifest ─────────────────────────────────────────────────────────
+samples: "config/samples.tsv"
+
+# ── Reference genome ────────────────────────────────────────────────────────
+genome_fasta: "data/genome/hg38.fa"
+gtf_file:     "data/genome/gencode.v44.annotation.gtf"
+genome_dir:   "data/genome/hg38_star_index"   # STAR index output directory
+
+# ── Results output ──────────────────────────────────────────────────────────
+results_dir: "results"
+
+# ── Trimmomatic parameters ──────────────────────────────────────────────────
+trimmomatic:
+  adapters:       "TruSeq3-PE-2.fa"           # Paired-end Illumina adapters
+  leading:        3
+  trailing:       3
+  slidingwindow:  "4:15"
+  minlen:         36
+
+# ── STAR alignment parameters ────────────────────────────────────────────────
+star:
+  threads:        8
+  genome_load:    "NoSharedMemory"
+  out_sam_type:   "BAM SortedByCoordinate"
+  out_sam_attrs:  "NH HI AS NM MD"
+
+# ── featureCounts parameters ─────────────────────────────────────────────────
+featurecounts:
+  # Strand: 0=unstranded, 1=forward, 2=reverse. Wrong strand silently skews counts.
+  # Confirm with RSeQC infer_experiment.py on aligned BAMs before production runs.
+  strand:         2
+  pair_end:       true
+  min_mapq:       10
+
+# ── DESeq2 parameters ────────────────────────────────────────────────────────
+deseq2:
+  reference_level:  "normal"   # Reference condition for contrast
+  lfc_threshold:    1.0        # |log2FoldChange| threshold for DEGs
+  fdr_threshold:    0.05       # Adjusted p-value (BH) threshold
+  min_counts:       10         # Pre-filter: minimum total counts across samples
+
+# ── clusterProfiler GSEA parameters ─────────────────────────────────────────
+gsea:
+  gene_sets:      "H"          # MSigDB Hallmark gene sets
+  organism:       "hsa"        # Homo sapiens
+  pvalue_cutoff:  0.05
+  min_gs_size:    15
+  max_gs_size:    500
