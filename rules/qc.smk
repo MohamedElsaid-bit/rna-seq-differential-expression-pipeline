@@ -36,8 +36,9 @@ rule fastqc_trimmed:
         r1 = "{results}/trimmed/{sample}_R1_trimmed.fastq.gz",
         r2 = "{results}/trimmed/{sample}_R2_trimmed.fastq.gz",
     output:
-        html_r1 = "{results}/qc/{sample}_trimmed_R1_fastqc.html",
-        html_r2 = "{results}/qc/{sample}_trimmed_R2_fastqc.html",
+        # FastQC names outputs after the input basename ({sample}_R1_trimmed.fastq.gz)
+        html_r1 = "{results}/qc/{sample}_R1_trimmed_fastqc.html",
+        html_r2 = "{results}/qc/{sample}_R2_trimmed_fastqc.html",
     params:
         outdir = "{results}/qc",
     threads: 2
