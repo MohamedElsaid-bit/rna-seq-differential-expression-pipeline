@@ -39,6 +39,8 @@ rule fastqc_trimmed:
         # FastQC names outputs after the input basename ({sample}_R1_trimmed.fastq.gz)
         html_r1 = "{results}/qc/{sample}_R1_trimmed_fastqc.html",
         html_r2 = "{results}/qc/{sample}_R2_trimmed_fastqc.html",
+        zip_r1  = "{results}/qc/{sample}_R1_trimmed_fastqc.zip",
+        zip_r2  = "{results}/qc/{sample}_R2_trimmed_fastqc.zip",
     params:
         outdir = "{results}/qc",
     threads: 2
@@ -64,6 +66,11 @@ rule multiqc:
         expand("{results}/qc/{sample}_R1_fastqc.zip",
                results=RESULTS, sample=SAMPLE_IDS),
         expand("{results}/qc/{sample}_R2_fastqc.zip",
+               results=RESULTS, sample=SAMPLE_IDS),
+        # Post-trimming FastQC, so MultiQC shows before/after trimming
+        expand("{results}/qc/{sample}_R1_trimmed_fastqc.zip",
+               results=RESULTS, sample=SAMPLE_IDS),
+        expand("{results}/qc/{sample}_R2_trimmed_fastqc.zip",
                results=RESULTS, sample=SAMPLE_IDS),
         # Include STAR alignment logs
         expand("{results}/alignments/{sample}.Log.final.out",
