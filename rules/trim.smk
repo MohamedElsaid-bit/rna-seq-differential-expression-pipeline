@@ -25,7 +25,7 @@ rule trimmomatic:
     resources:
         mem_mb = 8000,
     conda:
-        "../envs/alignment.yaml"
+        "../environment.yml"
     log:
         "{results}/logs/trimmomatic/{sample}.log"
     shell:

@@ -18,7 +18,7 @@ rule fastqc_raw:
     resources:
         mem_mb = 4000,
     conda:
-        "../envs/alignment.yaml"
+        "../environment.yml"
     log:
         "{results}/logs/fastqc/{sample}.log"
     shell:
@@ -47,7 +47,7 @@ rule fastqc_trimmed:
     resources:
         mem_mb = 4000,
     conda:
-        "../envs/alignment.yaml"
+        "../environment.yml"
     log:
         "{results}/logs/fastqc_trimmed/{sample}.log"
     shell:
@@ -82,7 +82,7 @@ rule multiqc:
         indir  = "{results}",
         outdir = "{results}/qc",
     conda:
-        "../envs/alignment.yaml"
+        "../environment.yml"
     log:
         "{results}/logs/multiqc.log"
     shell:

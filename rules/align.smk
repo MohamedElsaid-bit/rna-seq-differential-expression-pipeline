@@ -20,7 +20,7 @@ rule star_genome_index:
     resources:
         mem_mb = 40000,
     conda:
-        "../envs/alignment.yaml"
+        "../environment.yml"
     log:
         f"{RESULTS}/logs/star_index/star_genome_index.log"
     shell:
@@ -59,7 +59,7 @@ rule star_align:
     resources:
         mem_mb = 36000,
     conda:
-        "../envs/alignment.yaml"
+        "../environment.yml"
     log:
         "{results}/logs/star_align/{sample}.log"
     shell:
@@ -85,7 +85,7 @@ rule samtools_index:
     output:
         bai = "{results}/alignments/{sample}.Aligned.sortedByCoord.out.bam.bai",
     conda:
-        "../envs/alignment.yaml"
+        "../environment.yml"
     log:
         "{results}/logs/samtools_index/{sample}.log"
     shell:
@@ -99,7 +99,7 @@ rule samtools_flagstat:
     output:
         stats = "{results}/qc/{sample}_flagstat.txt",
     conda:
-        "../envs/alignment.yaml"
+        "../environment.yml"
     log:
         "{results}/logs/flagstat/{sample}.log"
     shell:

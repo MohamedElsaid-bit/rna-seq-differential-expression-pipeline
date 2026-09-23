@@ -25,7 +25,7 @@ rule featurecounts:
     resources:
         mem_mb = 16000,
     conda:
-        "../envs/quantification.yaml"
+        "../environment.yml"
     log:
         f"{RESULTS}/logs/featurecounts/featurecounts.log"
     shell:

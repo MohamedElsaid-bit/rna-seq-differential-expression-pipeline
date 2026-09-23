@@ -1,0 +1,33 @@
+# Single conda environment for every pipeline stage (used by all rules via `conda:`).
+# Snakemake itself lives in a separate environment created by setup.sh.
+# R 4.3 pairs with Bioconductor 3.18, so the Bioconductor packages below are the
+# 3.18 releases. Mixing releases (for example DESeq2 1.38 with R 4.3) cannot be solved.
+name: rnaseq
+channels:
+  - conda-forge
+  - bioconda
+dependencies:
+  - python=3.10
+  # QC, trimming, alignment
+  - fastqc=0.11.9
+  - trimmomatic=0.39
+  - star=2.7.10b
+  - samtools=1.17
+  - multiqc=1.14
+  # Quantification (subread provides featureCounts)
+  - subread=2.0.3
+  - pandas=2.0
+  - numpy=1.24
+  # Differential expression and enrichment
+  - r-base=4.3
+  - bioconductor-deseq2=1.42
+  - bioconductor-apeglm=1.24
+  - bioconductor-clusterprofiler=4.10
+  - bioconductor-enrichplot=1.22
+  - r-msigdbr=7.5.1
+  - r-ggplot2=3.4
+  - r-pheatmap=1.0.12
+  - r-ggrepel=0.9
+  - r-dplyr=1.1
+  - r-tibble=3.2
+  - r-rcolorbrewer=1.1

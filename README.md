@@ -79,7 +79,7 @@ rna-seq-pipeline/
 │   ├── deseq2_analysis.R
 │   ├── pathway_enrichment.R
 │   └── clean_count_matrix.py
-├── envs/                          # Per-stage conda environments
+├── environment.yml                # Pinned conda environment for all stages
 ├── notebooks/
 │   └── exploratory_analysis.ipynb # Post-run EDA (after pipeline completes)
 ├── .gitignore
@@ -227,7 +227,7 @@ results/figures/  results/tables/  results/qc/
 
 ## Methods (workflow specification)
 
-When executed, the pipeline applies the following methods (versions pinned in `envs/*.yaml`):
+When executed, the pipeline applies the following methods (versions pinned in `environment.yml`):
 
 - **QC:** FastQC; MultiQC aggregation  
 - **Trimming:** Trimmomatic (ILLUMINACLIP, LEADING/TRAILING, SLIDINGWINDOW, MINLEN per `config.yaml`)  

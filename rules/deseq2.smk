@@ -24,7 +24,7 @@ rule deseq2:
         min_counts    = config["deseq2"]["min_counts"],
         results_dir   = f"{RESULTS}",
     conda:
-        "../envs/r_analysis.yaml"
+        "../environment.yml"
     log:
         f"{RESULTS}/logs/deseq2/deseq2.log"
     script:
@@ -49,7 +49,7 @@ rule pathway_enrichment:
         max_gs_size   = config["gsea"]["max_gs_size"],
         results_dir   = f"{RESULTS}",
     conda:
-        "../envs/r_analysis.yaml"
+        "../environment.yml"
     log:
         f"{RESULTS}/logs/pathway_enrichment/gsea.log"
     script:
