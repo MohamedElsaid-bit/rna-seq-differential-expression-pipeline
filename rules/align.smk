@@ -6,7 +6,7 @@ rule star_genome_index:
     """
     Build STAR genome index from reference FASTA and GTF.
     Only needs to run once. Output directory is checked as sentinel.
-    Runtime: ~45–60 min with 8 threads, 32 GB RAM.
+    Whole genome needs ~32 GB RAM; the scoped 3 chromosome subset fits in ~5 GB.
     """
     input:
         fasta = config["genome_fasta"],
@@ -15,10 +15,11 @@ rule star_genome_index:
         directory(config["genome_dir"]),
     params:
         genome_dir   = config["genome_dir"],
-        overhang     = 99,       # ReadLength - 1; adjust if reads differ from 100bp
+        overhang     = config["star"]["sjdb_overhang"],   # ReadLength - 1
+        sparse_d     = config["star"]["genome_sa_sparse_d"],
     threads: 8
     resources:
-        mem_mb = 40000,
+        mem_mb = 6000,    # scoped 3 chromosome index; whole genome needs ~40000
     conda:
         "../environment.yml"
     log:
@@ -32,6 +33,7 @@ rule star_genome_index:
              --genomeFastaFiles {input.fasta} \
              --sjdbGTFfile {input.gtf} \
              --sjdbOverhang {params.overhang} \
+             --genomeSAsparseD {params.sparse_d} \
              2> {log}
         """
 
@@ -57,7 +59,7 @@ rule star_align:
         out_sam_attrs  = config["star"]["out_sam_attrs"],
     threads: 8
     resources:
-        mem_mb = 36000,
+        mem_mb = 3500,    # scoped index loaded per job; whole genome needs ~36000
     conda:
         "../environment.yml"
     log:

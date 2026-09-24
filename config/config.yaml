@@ -1,20 +1,24 @@
 # ─── RNA-seq Pipeline Configuration ───────────────────────────────────────────
 # Edit these paths and parameters before running the pipeline.
+# Default dataset: airway smooth muscle cells, dexamethasone vs untreated
+# (GEO GSE52778, ENA PRJNA229998), scoped to chr5, chr6 and chr17.
 
 # ── Sample manifest ─────────────────────────────────────────────────────────
 samples: "config/samples.tsv"
 
 # ── Reference genome ────────────────────────────────────────────────────────
-genome_fasta: "data/genome/hg38.fa"
-gtf_file:     "data/genome/gencode.v44.annotation.gtf"
-genome_dir:   "data/genome/hg38_star_index"   # STAR index output directory
+# Written by scripts/download_data.sh (GRCh38 chr5, chr6, chr17 and the GENCODE
+# v44 annotation filtered to the same chromosomes).
+genome_fasta: "data/genome/hg38_subset.fa"
+gtf_file:     "data/genome/gencode.v44.subset.gtf"
+genome_dir:   "data/genome/hg38_subset_star_index"   # STAR index output directory
 
 # ── Results output ──────────────────────────────────────────────────────────
 results_dir: "results"
 
 # ── Trimmomatic parameters ──────────────────────────────────────────────────
 trimmomatic:
-  adapters:       "TruSeq3-PE-2.fa"           # Paired-end Illumina adapters
+  adapters:       "TruSeq3-PE-2.fa"           # Paired-end Illumina adapters (looked up in the conda env)
   leading:        3
   trailing:       3
   slidingwindow:  "4:15"
@@ -26,18 +30,30 @@ star:
   genome_load:    "NoSharedMemory"
   out_sam_type:   "BAM SortedByCoordinate"
   out_sam_attrs:  "NH HI AS NM MD"
+  # sjdbOverhang = read length minus 1. Airway reads are 63 bp paired-end.
+  sjdb_overhang:  62
+  # Sparse suffix array (every 2nd position) roughly halves index RAM at a small
+  # speed cost, needed to index three chromosomes in a few GB of RAM.
+  genome_sa_sparse_d: 2
 
 # ── featureCounts parameters ─────────────────────────────────────────────────
 featurecounts:
   # Strand: 0=unstranded, 1=forward, 2=reverse. Wrong strand silently skews counts.
-  # Confirm with RSeQC infer_experiment.py on aligned BAMs before production runs.
-  strand:         2
+  # Confirm from the aligned BAMs (fraction of reads assigned under each setting)
+  # before trusting this value; see the README for the check that was run.
+  strand:         0
   pair_end:       true
   min_mapq:       10
 
 # ── DESeq2 parameters ────────────────────────────────────────────────────────
 deseq2:
-  reference_level:  "normal"   # Reference condition for contrast
+  condition_column: "condition"   # Column in samples.tsv holding the tested factor
+  reference_level:  "untreated"   # Reference condition for the contrast
+  treatment_level:  "dex"         # Condition compared against the reference
+  # Blocking factor for the paired design (~ donor + condition). Each donor cell
+  # line was measured untreated and treated, so modelling donor removes
+  # between-donor variation. Set to "" for a plain ~ condition design.
+  covariate_column: "donor"
   lfc_threshold:    1.0        # |log2FoldChange| threshold for DEGs
   fdr_threshold:    0.05       # Adjusted p-value (BH) threshold
   min_counts:       10         # Pre-filter: minimum total counts across samples

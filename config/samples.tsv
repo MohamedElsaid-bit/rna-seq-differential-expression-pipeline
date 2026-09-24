@@ -1,5 +1,9 @@
-sample_id	condition	fastq_r1	fastq_r2	batch
-TCGA_BR_001	tumor	data/raw/TCGA_BR_001_R1.fastq.gz	data/raw/TCGA_BR_001_R2.fastq.gz	batch1
-TCGA_BR_002	tumor	data/raw/TCGA_BR_002_R1.fastq.gz	data/raw/TCGA_BR_002_R2.fastq.gz	batch1
-TCGA_NM_001	normal	data/raw/TCGA_NM_001_R1.fastq.gz	data/raw/TCGA_NM_001_R2.fastq.gz	batch1
-TCGA_NM_002	normal	data/raw/TCGA_NM_002_R1.fastq.gz	data/raw/TCGA_NM_002_R2.fastq.gz	batch2
+sample_id	condition	donor	sra_run	fastq_r1	fastq_r2
+N61311_untreated	untreated	N61311	SRR1039508	data/raw/N61311_untreated_R1.fastq.gz	data/raw/N61311_untreated_R2.fastq.gz
+N61311_dex	dex	N61311	SRR1039509	data/raw/N61311_dex_R1.fastq.gz	data/raw/N61311_dex_R2.fastq.gz
+N052611_untreated	untreated	N052611	SRR1039512	data/raw/N052611_untreated_R1.fastq.gz	data/raw/N052611_untreated_R2.fastq.gz
+N052611_dex	dex	N052611	SRR1039513	data/raw/N052611_dex_R1.fastq.gz	data/raw/N052611_dex_R2.fastq.gz
+N080611_untreated	untreated	N080611	SRR1039516	data/raw/N080611_untreated_R1.fastq.gz	data/raw/N080611_untreated_R2.fastq.gz
+N080611_dex	dex	N080611	SRR1039517	data/raw/N080611_dex_R1.fastq.gz	data/raw/N080611_dex_R2.fastq.gz
+N061011_untreated	untreated	N061011	SRR1039520	data/raw/N061011_untreated_R1.fastq.gz	data/raw/N061011_untreated_R2.fastq.gz
+N061011_dex	dex	N061011	SRR1039521	data/raw/N061011_dex_R1.fastq.gz	data/raw/N061011_dex_R2.fastq.gz
