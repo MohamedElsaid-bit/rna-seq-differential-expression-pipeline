@@ -1,0 +1,15 @@
+Status	results/alignments/N61311_untreated.Aligned.sortedByCoord.out.bam	results/alignments/N61311_dex.Aligned.sortedByCoord.out.bam	results/alignments/N052611_untreated.Aligned.sortedByCoord.out.bam	results/alignments/N052611_dex.Aligned.sortedByCoord.out.bam	results/alignments/N080611_untreated.Aligned.sortedByCoord.out.bam	results/alignments/N080611_dex.Aligned.sortedByCoord.out.bam	results/alignments/N061011_untreated.Aligned.sortedByCoord.out.bam	results/alignments/N061011_dex.Aligned.sortedByCoord.out.bam
+Assigned	953326	930401	897812	865902	929071	891697	878498	848695
+Unassigned_Unmapped	3645542	3580736	3655929	3639448	3531547	3611566	3611237	3661252
+Unassigned_Read_Type	0	0	0	0	0	0	0	0
+Unassigned_Singleton	0	0	0	0	0	0	0	0
+Unassigned_MappingQuality	0	0	0	0	0	0	0	0
+Unassigned_Chimera	0	0	0	0	0	0	0	0
+Unassigned_FragmentLength	0	0	0	0	0	0	0	0
+Unassigned_Duplicate	0	0	0	0	0	0	0	0
+Unassigned_MultiMapping	133564	134046	123031	119725	123069	120964	122050	112016
+Unassigned_Secondary	0	0	0	0	0	0	0	0
+Unassigned_NonSplit	0	0	0	0	0	0	0	0
+Unassigned_NoFeatures	90238	92535	92356	93143	106338	101361	87774	83049
+Unassigned_Overlapping_Length	0	0	0	0	0	0	0	0
+Unassigned_Ambiguity	87446	84073	77114	74319	79431	72450	74636	70848

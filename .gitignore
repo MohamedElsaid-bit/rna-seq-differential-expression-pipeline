@@ -1,5 +1,8 @@
-# ── Large data files — never commit these ─────────────────────────────────
-data/
+# ── Large data files: never commit these ──────────────────────────────────
+# Raw reads and the reference are downloaded by scripts/download_data.sh.
+# data/processed/ holds a small example FASTQ subset that IS committed.
+data/raw/
+data/genome/
 *.fastq.gz
 *.fastq
 *.fq.gz
@@ -10,9 +13,19 @@ data/
 *.fasta
 *.gtf
 *.gtf.gz
+!data/processed/example_fastq/*.fastq.gz
 
-# ── Generated results (re-created by pipeline) ────────────────────────────
-results/
+# ── Generated results: commit only the small summary outputs ──────────────
+# Intermediates (trimmed reads, BAMs, per sample FastQC, logs) are re-created
+# by the pipeline. Tables, figures, the MultiQC report and the STAR final logs
+# are small and committed so results can be browsed without running anything.
+results/*
+!results/tables/
+!results/figures/
+!results/alignment_logs/
+!results/qc/
+results/qc/*
+!results/qc/multiqc_report.html
 
 # ── Snakemake internals ───────────────────────────────────────────────────
 .snakemake/
