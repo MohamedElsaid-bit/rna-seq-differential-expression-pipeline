@@ -17,13 +17,15 @@ rule featurecounts:
     output:
         counts   = f"{RESULTS}/tables/raw_counts.tsv",
         summary  = f"{RESULTS}/tables/raw_counts.tsv.summary",
+        annotation = f"{RESULTS}/tables/gene_annotation.tsv",
     params:
         strand    = config["featurecounts"]["strand"],
         min_mapq  = config["featurecounts"]["min_mapq"],
-        pair_end  = "-p" if config["featurecounts"]["pair_end"] else "",
+        # subread 2.0.2 and later needs --countReadPairs to count fragments, not mates
+        pair_end  = "-p --countReadPairs" if config["featurecounts"]["pair_end"] else "",
     threads: 8
     resources:
-        mem_mb = 16000,
+        mem_mb = 4000,
     conda:
         "../environment.yml"
     log:
@@ -36,6 +38,7 @@ rule featurecounts:
             -s {params.strand} \
             -Q {params.min_mapq} \
             -a {input.gtf} \
+            -t exon -g gene_id --extraAttributes gene_name \
             -o {output.counts} \
             {input.bams} \
             2> {log}

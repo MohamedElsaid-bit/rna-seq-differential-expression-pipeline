@@ -32,8 +32,8 @@ def main(counts_file: str) -> None:
 
     df = pd.read_csv(counts_file, sep="\t", comment="#", index_col=0)
 
-    # featureCounts first 5 cols after gene_id are metadata — keep as-is
-    meta_cols = ["Chr", "Start", "End", "Strand", "Length"]
+    # featureCounts writes 5 coordinate columns plus the requested gene_name attribute
+    meta_cols = ["Chr", "Start", "End", "Strand", "Length", "gene_name"]
     meta_mask = df.columns.isin(meta_cols)
 
     # Rename BAM path columns
@@ -45,6 +45,12 @@ def main(counts_file: str) -> None:
             new_columns.append(clean_column_name(col))
 
     df.columns = new_columns
+
+    # MSigDB gene sets use gene symbols, so keep the gene_id to gene_name map for
+    # the R scripts (the count matrix itself stays gene_id only).
+    annotation = df[["gene_name"]].rename_axis("gene_id").reset_index()
+    annotation_path = Path(counts_file).with_name("gene_annotation.tsv")
+    annotation.to_csv(annotation_path, sep="\t", index=False)
 
     # Drop featureCounts metadata columns — keep only count columns
     count_cols = [c for c in df.columns if c not in meta_cols]
