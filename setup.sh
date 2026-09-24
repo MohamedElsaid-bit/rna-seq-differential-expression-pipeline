@@ -16,5 +16,5 @@ $CONDA_CMD create -n snakemake -c conda-forge -c bioconda \
 echo ""
 echo "Setup complete."
 echo "Activate with:  conda activate snakemake"
-echo "Dry run with:   snakemake --dry-run --cores 1 --use-conda"
-echo "Full run with:  snakemake --cores 8 --use-conda"
+echo "Dry run with:   snakemake --dry-run --cores 1 --use-conda --conda-frontend conda"
+echo "Full run with:  snakemake --cores 8 --use-conda --conda-frontend conda --resources mem_mb=6500"

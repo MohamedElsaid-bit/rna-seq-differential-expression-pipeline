@@ -10,10 +10,10 @@ jobs:
   dry-run:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Set up Miniconda
-        uses: conda-incubator/setup-miniconda@v2
+        uses: conda-incubator/setup-miniconda@v3
         with:
           miniconda-version: "latest"
           python-version: "3.10"
@@ -23,22 +23,17 @@ jobs:
       - name: Install Snakemake
         shell: bash -l {0}
         run: |
-          conda install -c conda-forge -c bioconda snakemake=7.32 --yes
+          conda install -c conda-forge -c bioconda snakemake=7.32 pandas=2.0 --yes
 
-      - name: Create dummy data for dry-run
+      - name: Create empty placeholder inputs for the dry run
         run: |
-          mkdir -p data/raw data/genome results/tables results/figures results/qc
-          touch data/genome/hg38.fa data/genome/gencode.v44.annotation.gtf
-          for s in TCGA_BR_001 TCGA_BR_002 TCGA_NM_001 TCGA_NM_002; do
-            touch data/raw/${s}_R1.fastq.gz data/raw/${s}_R2.fastq.gz
-          done
+          # The dry run only checks that the workflow graph resolves, so empty
+          # files stand in for the reads and reference listed in the config.
+          mkdir -p data/raw data/genome
+          touch data/genome/hg38_subset.fa data/genome/gencode.v44.subset.gtf
+          tail -n +2 config/samples.tsv | cut -f5,6 | tr '\t' '\n' | while read -r f; do touch "$f"; done
 
-      - name: Run Snakemake dry-run
+      - name: Run Snakemake dry run
         shell: bash -l {0}
         run: |
-          snakemake --dry-run --cores 1 --use-conda
-
-      - name: Generate DAG
-        shell: bash -l {0}
-        run: |
-          snakemake --dag --cores 1 | dot -Tsvg > results/figures/dag.svg || true
+          snakemake --dry-run --cores 1 --use-conda --conda-frontend conda
