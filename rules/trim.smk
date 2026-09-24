@@ -23,19 +23,23 @@ rule trimmomatic:
         minlen         = config["trimmomatic"]["minlen"],
     threads: 4
     resources:
-        mem_mb = 8000,
+        mem_mb = 2000,
     conda:
         "../environment.yml"
     log:
         "{results}/logs/trimmomatic/{sample}.log"
     shell:
         """
+        # The bioconda wrapper does not search for adapter files, so resolve the
+        # directory inside the active conda environment.
+        ADAPTER_DIR=$(ls -d "$CONDA_PREFIX"/share/trimmomatic*/adapters | head -n 1)
+
         trimmomatic PE \
             -threads {threads} \
             {input.r1} {input.r2} \
             {output.r1_paired} {output.r1_unpaired} \
             {output.r2_paired} {output.r2_unpaired} \
-            ILLUMINACLIP:{params.adapters}:2:30:10 \
+            ILLUMINACLIP:$ADAPTER_DIR/{params.adapters}:2:30:10 \
             LEADING:{params.leading} \
             TRAILING:{params.trailing} \
             SLIDINGWINDOW:{params.slidingwindow} \

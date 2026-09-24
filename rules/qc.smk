@@ -77,7 +77,7 @@ rule multiqc:
                results=RESULTS, sample=SAMPLE_IDS),
     output:
         html   = "{results}/qc/multiqc_report.html",
-        data   = directory("{results}/qc/multiqc_data"),
+        data   = directory("{results}/qc/multiqc_report_data"),
     params:
         indir  = "{results}",
         outdir = "{results}/qc",
