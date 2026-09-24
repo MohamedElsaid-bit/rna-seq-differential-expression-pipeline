@@ -87,9 +87,13 @@ rule multiqc:
         "{results}/logs/multiqc.log"
     shell:
         """
+        # --fullnames: by default MultiQC strips "_trimmed" from sample names, so the raw
+        # and trimmed FastQC reports of one file collapse into one entry and the raw
+        # one is silently dropped. Full names keep both, so trimming can be compared.
         multiqc {params.indir} \
                 --outdir {params.outdir} \
                 --filename multiqc_report.html \
+                --fullnames \
                 --force \
                 2> {log}
         """
