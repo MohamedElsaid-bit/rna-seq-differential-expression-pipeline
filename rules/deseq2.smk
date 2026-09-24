@@ -9,6 +9,7 @@ rule deseq2:
     """
     input:
         counts   = f"{RESULTS}/tables/raw_counts.tsv",
+        annotation = f"{RESULTS}/tables/gene_annotation.tsv",
         metadata = config["samples"],
     output:
         deseq2_results    = f"{RESULTS}/tables/deseq2_results.tsv",
@@ -18,7 +19,10 @@ rule deseq2:
         heatmap           = f"{RESULTS}/figures/heatmap_top50.png",
         ma_plot           = f"{RESULTS}/figures/ma_plot.png",
     params:
+        condition_col = config["deseq2"]["condition_column"],
         ref_level     = config["deseq2"]["reference_level"],
+        treat_level   = config["deseq2"]["treatment_level"],
+        covariate_col = config["deseq2"]["covariate_column"],
         lfc_threshold = config["deseq2"]["lfc_threshold"],
         fdr_threshold = config["deseq2"]["fdr_threshold"],
         min_counts    = config["deseq2"]["min_counts"],
@@ -44,6 +48,8 @@ rule pathway_enrichment:
     params:
         gene_sets     = config["gsea"]["gene_sets"],
         organism      = config["gsea"]["organism"],
+        ref_level     = config["deseq2"]["reference_level"],
+        treat_level   = config["deseq2"]["treatment_level"],
         pvalue_cutoff = config["gsea"]["pvalue_cutoff"],
         min_gs_size   = config["gsea"]["min_gs_size"],
         max_gs_size   = config["gsea"]["max_gs_size"],

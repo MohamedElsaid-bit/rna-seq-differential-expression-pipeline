@@ -19,7 +19,11 @@ suppressPackageStartupMessages({
 # ── Snakemake passes params via the snakemake object ─────────────────────────
 counts_file    <- snakemake@input[["counts"]]
 metadata_file  <- snakemake@input[["metadata"]]
+annotation_file <- snakemake@input[["annotation"]]
+condition_col  <- snakemake@params[["condition_col"]]
 ref_level      <- snakemake@params[["ref_level"]]
+treat_level    <- snakemake@params[["treat_level"]]
+covariate_col  <- snakemake@params[["covariate_col"]]
 lfc_threshold  <- as.numeric(snakemake@params[["lfc_threshold"]])
 fdr_threshold  <- as.numeric(snakemake@params[["fdr_threshold"]])
 min_counts     <- as.integer(snakemake@params[["min_counts"]])
@@ -29,6 +33,10 @@ log_file       <- snakemake@log[[1]]
 log_con        <- file(log_file, open = "wt")
 sink(log_con, append = TRUE, type = "output")
 sink(log_con, append = TRUE, type = "message")
+
+
+# Colors keyed to the configured condition levels (reference blue, treatment orange)
+cond_colors <- setNames(c("#378ADD", "#D85A30"), c(ref_level, treat_level))
 
 
 # ── 1. Load data ─────────────────────────────────────────────────────────────
@@ -41,9 +49,13 @@ counts <- as.matrix(counts)
 
 message("Loading sample metadata...")
 metadata <- read.delim(metadata_file, row.names = 1)
-metadata$condition <- factor(metadata$condition,
-                             levels = c(ref_level,
-                                        setdiff(unique(metadata$condition), ref_level)))
+# Reference level first so log2FoldChange is treatment relative to reference
+stopifnot(condition_col %in% colnames(metadata),
+          all(c(ref_level, treat_level) %in% metadata[[condition_col]]))
+metadata[[condition_col]] <- factor(metadata[[condition_col]],
+                                    levels = c(ref_level, treat_level))
+has_covariate <- nzchar(covariate_col) && covariate_col %in% colnames(metadata)
+if (has_covariate) metadata[[covariate_col]] <- factor(metadata[[covariate_col]])
 
 # Ensure column order matches metadata row order
 counts <- counts[, rownames(metadata)]
@@ -53,10 +65,17 @@ message(sprintf("Loaded %d genes x %d samples", nrow(counts), ncol(counts)))
 # ── 2. Create DESeqDataSet ────────────────────────────────────────────────────
 
 message("Building DESeqDataSet...")
+# Paired design: block on donor so the condition effect is estimated within donor
+design_formula <- if (has_covariate) {
+  as.formula(paste("~", covariate_col, "+", condition_col))
+} else {
+  as.formula(paste("~", condition_col))
+}
+message(sprintf("Design: %s", deparse(design_formula)))
 dds <- DESeqDataSetFromMatrix(
   countData = counts,
   colData   = metadata,
-  design    = ~ condition
+  design    = design_formula
 )
 
 # Pre-filter: remove genes with very low total counts
@@ -71,13 +90,13 @@ message("Running DESeq2 (Wald test)...")
 dds <- DESeq(dds)
 
 res <- results(dds,
-               contrast       = c("condition", "tumor", ref_level),
+               contrast       = c(condition_col, treat_level, ref_level),
                alpha          = fdr_threshold,
                lfcThreshold   = 0)
 
 # Shrink LFC estimates with apeglm for accurate visualization
-coef_name <- resultsNames(dds)[grepl("condition_", resultsNames(dds)) &
-                               !grepl("Intercept", resultsNames(dds))][1]
+coef_name <- sprintf("%s_%s_vs_%s", condition_col, treat_level, ref_level)
+stopifnot(coef_name %in% resultsNames(dds))
 message(sprintf("lfcShrink coef: %s", coef_name))
 
 res_shrunk <- lfcShrink(dds,
@@ -88,8 +107,15 @@ res_shrunk <- lfcShrink(dds,
 summary(res_shrunk)
 
 # Convert to data frame and add gene significance labels
+# apeglm shrinkage drops the Wald statistic, so take it from the unshrunk results;
+# GSEA ranks genes by this statistic. Gene symbols are needed because MSigDB gene
+# sets are keyed by symbol, not Ensembl ID.
+gene_map <- read.delim(annotation_file, stringsAsFactors = FALSE)
 res_df <- as.data.frame(res_shrunk) %>%
   rownames_to_column("gene_id") %>%
+  mutate(stat      = res[gene_id, "stat"],
+         gene_name = gene_map$gene_name[match(gene_id, gene_map$gene_id)],
+         gene_label = ifelse(is.na(gene_name) | gene_name == "", gene_id, gene_name)) %>%
   arrange(padj) %>%
   mutate(
     significant = !is.na(padj) &
@@ -134,7 +160,7 @@ message("Generating volcano plot...")
 top_genes <- res_df %>%
   filter(significant) %>%
   slice_min(padj, n = 15) %>%
-  pull(gene_id)
+  pull(gene_label)
 
 pal <- c("Upregulated" = "#D85A30", "Downregulated" = "#378ADD", "Not significant" = "#888780")
 
@@ -144,8 +170,8 @@ p_volcano <- ggplot(res_df %>% filter(!is.na(padj)),
                         color = direction)) +
   geom_point(size = 0.8, alpha = 0.7) +
   geom_text_repel(
-    data   = filter(res_df, gene_id %in% top_genes),
-    aes(label = gene_id),
+    data   = filter(res_df, gene_label %in% top_genes),
+    aes(label = gene_label),
     size   = 2.8,
     color  = "black",
     box.padding = 0.4,
@@ -157,7 +183,7 @@ p_volcano <- ggplot(res_df %>% filter(!is.na(padj)),
              linetype = "dashed", color = "grey50", linewidth = 0.4) +
   scale_color_manual(values = pal) +
   labs(
-    title    = "Differential Gene Expression: Tumor vs. Normal",
+    title    = sprintf("Differential Gene Expression: %s vs. %s", treat_level, ref_level),
     subtitle = sprintf("%d upregulated  |  %d downregulated  (|LFC| > %g, FDR < %g)",
                        n_up, n_down, lfc_threshold, fdr_threshold),
     x        = expression(log[2]~"Fold Change"),
@@ -173,29 +199,31 @@ p_volcano <- ggplot(res_df %>% filter(!is.na(padj)),
   )
 
 ggsave(snakemake@output[["volcano_plot"]],
-       plot = p_volcano, width = 8, height = 6, dpi = 300)
+       plot = p_volcano, width = 8, height = 6, dpi = 300, bg = "white")
 
 
 # ── 6. PCA plot ───────────────────────────────────────────────────────────────
 
 message("Generating PCA plot...")
 
-pca_data  <- plotPCA(vst_counts, intgroup = c("condition", "batch"),
+pca_data  <- plotPCA(vst_counts,
+                     intgroup = c(condition_col, if (has_covariate) covariate_col),
                      returnData = TRUE)
 pct_var   <- round(100 * attr(pca_data, "percentVar"), 1)
 
 p_pca <- ggplot(pca_data,
                 aes(x = PC1, y = PC2,
-                    color = condition, shape = batch)) +
+                    color = .data[[condition_col]],
+                    shape = if (has_covariate) .data[[covariate_col]] else NULL)) +
   geom_point(size = 4, alpha = 0.9) +
   geom_text_repel(aes(label = name), size = 2.5, color = "grey30") +
-  scale_color_manual(values = c("tumor" = "#D85A30", "normal" = "#378ADD")) +
+  scale_color_manual(values = cond_colors) +
   labs(
     title  = "PCA of VST-Normalized Expression",
     x      = sprintf("PC1: %g%% variance", pct_var[1]),
     y      = sprintf("PC2: %g%% variance", pct_var[2]),
     color  = "Condition",
-    shape  = "Batch"
+    shape  = "Donor"
   ) +
   theme_minimal(base_size = 12) +
   theme(
@@ -204,7 +232,7 @@ p_pca <- ggplot(pca_data,
   )
 
 ggsave(snakemake@output[["pca_plot"]],
-       plot = p_pca, width = 7, height = 6, dpi = 300)
+       plot = p_pca, width = 7, height = 6, dpi = 300, bg = "white")
 
 
 # ── 7. Heatmap (top 50 DEGs) ─────────────────────────────────────────────────
@@ -226,16 +254,18 @@ if (length(top50_genes) < 3) {
   dev.off()
 } else {
   heatmap_mat <- norm_mat[top50_genes, , drop = FALSE]
+  rownames(heatmap_mat) <- res_df$gene_label[match(top50_genes, res_df$gene_id)]
   # Scale rows (z-score) for visualization
   heatmap_mat <- t(scale(t(heatmap_mat)))
 
   ann_col <- data.frame(
-    Condition = metadata$condition,
+    Condition = metadata[[condition_col]],
     row.names = rownames(metadata)
   )
-  ann_colors <- list(Condition = c("tumor" = "#D85A30", "normal" = "#378ADD"))
+  if (has_covariate) ann_col$Donor <- metadata[[covariate_col]]
+  ann_colors <- list(Condition = cond_colors)
 
-  png(snakemake@output[["heatmap"]], width = 900, height = 1100, res = 150)
+  png(snakemake@output[["heatmap"]], width = 1100, height = 1300, res = 150)
   pheatmap(heatmap_mat,
            annotation_col  = ann_col,
            annotation_colors = ann_colors,
@@ -246,7 +276,7 @@ if (length(top50_genes) < 3) {
            show_colnames   = TRUE,
            fontsize_row    = 7,
            fontsize_col    = 9,
-           main            = "Top 50 Differentially Expressed Genes (z-score)")
+           main            = "Top DEGs by adjusted p-value (row z-score)")
   dev.off()
 }
 
@@ -277,7 +307,7 @@ p_ma <- ggplot(res_df %>% filter(!is.na(padj)),
         legend.position = "top")
 
 ggsave(snakemake@output[["ma_plot"]],
-       plot = p_ma, width = 7, height = 5, dpi = 300)
+       plot = p_ma, width = 7, height = 5, dpi = 300, bg = "white")
 
 
 message("DESeq2 analysis complete.")
